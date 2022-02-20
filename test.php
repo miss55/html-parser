@@ -1,7 +1,7 @@
 <?php
 require 'vendor/autoload.php';
 
-$url = 'http://www.sina.com.cn/';
+$url = 'https://www.sina.com.cn/';
 $sHtml = file_get_contents($url);
 
 for($i = 0; $i < 10000; $i ++) {

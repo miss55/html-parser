@@ -1,25 +1,32 @@
 HtmlParser
 ===============
 [![Total Downloads](https://img.shields.io/badge/downloads-9.4k-green.svg)](https://packagist.org/packages/bupt1987/html-parser)
-[![Build Status](https://api.travis-ci.org/bupt1987/html-parser.svg)](https://travis-ci.org/bupt1987/html-parser)  
+[![Build Status](https://api.travis-ci.org/bupt1987/html-parser.svg)](https://travis-ci.org/bupt1987/html-parser)
 
-php html解析工具，类似与PHP Simple HTML DOM Parser。
-由于基于php模块dom，所以在解析html时的效率比 PHP Simple HTML DOM Parser 快好几倍。
-
+php html解析工具，类似与PHP Simple HTML DOM Parser。 由于基于php模块dom，所以在解析html时的效率比 PHP Simple HTML DOM Parser 快好几倍。
 
 注意：html代码必须是utf-8编码字符，如果不是请转成utf-8  
-      如果有乱码的问题参考：http://www.fwolf.com/blog/post/314  
+如果有乱码的问题参考：http://www.fwolf.com/blog/post/314
 
 现在支持composer
 
-"require": {"bupt1987/html-parser": "dev-master"}
+~~"require": {"bupt1987/html-parser": "dev-master"}~~
 
 加载composer  
 require 'vendor/autoload.php';
 
+### fixed 完善点
+
+1. 支持文件格式加载 html和xml，如果数据非常大，可以有效减少php允许内存
+1. search方法重构，改为yield方式，减少中间变量（影响内存不多）
+1. 优化反向查询，不必遍历全部dom之后再返回
+1. 添加 get, eq, first, end, one, all 等方法
+
 ================================================================================
+
 ##### *Example*
-~~~
+
+~~~php
 <?php
 require 'vendor/autoload.php';
 
@@ -36,15 +43,25 @@ $html = '<html>
   </body>
 </html>';
 $html_dom = new \HtmlParser\ParserDom($html);
-$p_array = $html_dom->find('p.test_class');
-$p1 = $html_dom->find('p.test_class1',0);
-$div = $html_dom->find('div#test1',0);
-foreach ($p_array as $p){
-	echo $p->getPlainText() . "\n";
-}
+
+# 旧方式
+# $p_array = $html_dom->find('p.test_class');
+# $p1 = $html_dom->find('p.test_class1',0);
+# $div = $html_dom->find('div#test1',0);
+# foreach ($p_array as $p){
+# 	echo $p->getPlainText() . "\n";
+# }
+
+$p1 = $html_dom->first('p.test_class1');
+$div = $html_dom->first('div#test1');
+ foreach ($html_dom->all('p.test_class') as $p){
+    echo $p->getPlainText() . "\n";
+ }
+
 echo $div->getPlainText() . "\n";
 echo $p1->getPlainText() . "\n";
 echo $p1->getAttr('class') . "\n";
+echo $html_dom->end('p.test_class')->getPlainText(). "\n";
 echo "show html:\n";
 echo $div->innerHtml() . "\n";
 echo $div->outerHtml() . "\n";
@@ -53,18 +70,27 @@ echo $div->outerHtml() . "\n";
 
 基础用法
 ================================================================================
+
 ~~~
+// 查找所有 find ==> get, all
+// 查找单个 find ==> first, end, one, eq
 // 查找所有a标签
 $ret = $html->find('a');
 
 // 查找a标签的第一个元素
 $ret = $html->find('a', 0);
+$ret = $html->first('a');
+$ret = $html->one('a');
 
 // 查找a标签的倒数第一个元素
 $ret = $html->find('a', -1); 
+$ret = $html->end('a');
+$ret = $html->one('a', -1);
 
 // 查找所有含有id属性的div标签
 $ret = $html->find('div[id]');
+$ret = $html->all('div[id]');
+$ret = $html->get('div[id]');
 
 // 查找所有含有id属性为foo的div标签
 $ret = $html->find('div[id=foo]'); 
@@ -72,6 +98,7 @@ $ret = $html->find('div[id=foo]');
 
 高级用法
 ================================================================================
+
 ~~~
 // 查找所有id=foo的元素
 $ret = $html->find('#foo');
@@ -91,6 +118,7 @@ $ret = $html->find('a[title], img[title]');
 
 层级选择器
 ================================================================================
+
 ~~~
 // Find all <li> in <ul> 
 $es = $html->find('ul li');
@@ -107,6 +135,7 @@ $es = $html->find('table td[align=center]');
 
 嵌套选择器
 ================================================================================
+
 ~~~
 // Find all <li> in <ul> 
 foreach($html->find('ul') as $ul) 
@@ -123,6 +152,7 @@ $e = $html->find('ul', 0)->find('li', 0);
 
 属性过滤
 ================================================================================
+
 ~~~
 支持属性选择器操作:
 
@@ -138,6 +168,7 @@ $e = $html->find('ul', 0)->find('li', 0);
 
 Dom扩展用法
 ===============================================================================
+
 ~~~
 获取dom通过扩展实现更多的功能，详见：http://php.net/manual/zh/book.dom.php
 
